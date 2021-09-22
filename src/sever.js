@@ -1,5 +1,5 @@
 import http from "http";
-import WebSocket from "ws";
+import SocketIO from "socket.io";
 import express from "express";
 
 const PORT = 3000;
@@ -14,32 +14,42 @@ app.get("/*", (_, res) => res.redirect("/"));
 const handlelisten = () =>
   console.log(`🚀 App Listening http://localhost:${PORT}`);
 
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const httpServer = http.createServer(app);
+const wsServer = SocketIO(httpServer);
 
-const sockets = [];
-
-wss.on("connection", (socket) => {
-  sockets.push(socket);
-  socket["nickname"] = "Anon";
-  console.log("Connected to Browser ✅");
-  socket.on("close", () => {
-    console.log("Disconnected from the Browser ❌");
-  });
-  socket.on("message", (msg) => {
-    const message = JSON.parse(msg);
-    switch (message.type) {
-      case "new_message":
-        sockets.forEach((aSocket) =>
-          aSocket.send(`${socket.nickname}: ${message.payload}`)
-        );
-        break;
-      case "nickname":
-        socket["nickname"] = message.payload;
-        break;
-    }
-    console.log(socket.nickname);
+wsServer.on("connection", (socket) => {
+  socket.on("enter_room", (msg, done) => {
+    console.log(msg);
+    setTimeout(() => {
+      done("from backend!!");
+    }, 3000);
   });
 });
+// const wss = new WebSocket.Server({ server });
 
-server.listen(PORT, handlelisten);
+// const sockets = [];
+
+// wss.on("connection", (socket) => {
+//   sockets.push(socket);
+//   socket["nickname"] = "Anon";
+//   console.log("Connected to Browser ✅");
+//   socket.on("close", () => {
+//     console.log("Disconnected from the Browser ❌");
+//   });
+//   socket.on("message", (msg) => {
+//     const message = JSON.parse(msg);
+//     switch (message.type) {
+//       case "new_message":
+//         sockets.forEach((aSocket) =>
+//           aSocket.send(`${socket.nickname}: ${message.payload}`)
+//         );
+//         break;
+//       case "nickname":
+//         socket["nickname"] = message.payload;
+//         break;
+//     }
+//     console.log(socket.nickname);
+//   });
+// });
+
+httpServer.listen(PORT, handlelisten);
