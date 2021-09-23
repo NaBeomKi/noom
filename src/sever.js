@@ -18,11 +18,20 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection", (socket) => {
-  socket.on("enter_room", (msg, done) => {
-    console.log(msg);
-    setTimeout(() => {
-      done("from backend!!");
-    }, 3000);
+  socket.onAny((event, ...args) => {
+    console.log(`Socket Event: ${event}`);
+  });
+  socket.on("enter_room", (roomName, done) => {
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome");
+  });
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+  });
+  socket.on("new_message", (msg, roomName, done) => {
+    socket.to(roomName).emit("new_message", msg);
+    done();
   });
 });
 // const wss = new WebSocket.Server({ server });
