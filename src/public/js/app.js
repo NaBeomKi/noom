@@ -99,18 +99,19 @@ camerasSelect.addEventListener("input", handleCameraChange);
 const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
-const startMedia = async () => {
+const initCall = async () => {
   welcome.hidden = true;
   call.hidden = false;
   await getMedia();
   makeConnection();
 };
 
-const handleWelcomeSubmit = (e) => {
+const handleWelcomeSubmit = async (e) => {
   e.preventDefault();
   const input = welcomeForm.querySelector("input");
   roomName = input.value;
-  socket.emit("join_room", input.value, startMedia);
+  await initCall();
+  socket.emit("join_room", input.value);
   input.value = "";
 };
 
@@ -126,8 +127,15 @@ socket.on("welcome", async () => {
   socket.emit("offer", offer, roomName);
 });
 
-socket.on("offer", (offer) => {
-  console.log(offer);
+socket.on("offer", async (offer) => {
+  myPeerConnection.setRemoteDescription(offer);
+  const answer = await myPeerConnection.createAnswer();
+  myPeerConnection.setLocalDescription(answer);
+  socket.emit("answer", answer, roomName);
+});
+
+socket.on("answer", (answer) => {
+  myPeerConnection.setRemoteDescription(answer);
 });
 
 // RTC Code
