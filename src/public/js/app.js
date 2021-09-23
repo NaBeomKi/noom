@@ -26,11 +26,15 @@ const handleMessageSubmit = (e) => {
   input.value = "";
 };
 
-const showRoom = () => {
+const paintRoomTitle = (count) => {
+  const h3 = room.querySelector("h3");
+  h3.innerText = `Room ${roomName} (${count})`;
+};
+
+const showRoom = (newCount) => {
   welcome.hidden = true;
   room.hidden = false;
-  const h3 = room.querySelector("h3");
-  h3.innerText = `Room ${roomName}`;
+  paintRoomTitle(newCount);
   const messageForm = room.querySelector("#msg");
   messageForm.addEventListener("submit", handleMessageSubmit);
 };
@@ -53,11 +57,13 @@ const handleNicknameSubmit = (e) => {
 form.addEventListener("submit", handleSubmit);
 nameForm.addEventListener("submit", handleNicknameSubmit);
 
-socket.on("welcome", (user) => {
+socket.on("welcome", (user, newCount) => {
+  paintRoomTitle(newCount);
   addMessage(`${user} joined!`);
 });
 
-socket.on("bye", (left) => {
+socket.on("bye", (left, newCount) => {
+  paintRoomTitle(newCount);
   addMessage(`${left} left👋`);
 });
 
