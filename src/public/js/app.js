@@ -88,6 +88,13 @@ const handleCameraClick = () => {
 
 const handleCameraChange = async () => {
   await getMedia(camerasSelect.value);
+  if (myPeerConnection) {
+    const videoTrack = myStream.getVideoTracks()[0];
+    const videoSender = myPeerConnection
+      .getSenders()
+      .find((sender) => sender.track.kind === "video");
+    videoSender.replaceTrack(videoTrack);
+  }
 };
 
 muteBtn.addEventListener("click", handleMuteClick);
@@ -166,5 +173,4 @@ const handleAddStream = (data) => {
   console.log("got an event from my peer");
   const peerFace = document.getElementById("peerFace");
   peerFace.srcObject = data.stream;
-  console.log(data);
 };
